@@ -27,7 +27,6 @@ import Path
 import Path.Dressup.Utils as PathDressup
 import math
 
-
 # lazily loaded modules
 from lazy_loader.lazy_loader import LazyLoader
 
@@ -755,12 +754,15 @@ class ObjectDressup:
                 if Path.Geom.edgesMatch(edge, redge):
                     israpid = True
             if israpid:
-                v = edge.valueAt(edge.LastParameter)
-                commands.append(Path.Command("G0", {"X": v.x, "Y": v.y, "Z": v.z}))
+                v1 = edge.valueAt(edge.LastParameter)
+                v2 = edge.valueAt(edge.FirstParameter)
+                if v1.x == v2.x and v1.y == v2.y:
+                    commands.append(Path.Command("G0", {"Z": v1.z}))
+                else:
+                    commands.append(Path.Command("G0", {"X": v1.x, "Y": v1.y, "Z": v1.z}))
             else:
                 commands.extend(Path.Geom.cmdsForEdge(edge))
-
-        lastCmd = Path.Command("G0", {"X": 0.0, "Y": 0.0, "Z": 0.0})
+        lastCmd = Path.Command("G0", {})
 
         outCommands = []
 
@@ -797,7 +799,7 @@ class ObjectDressup:
 
             if cmd.Name in ["G1", "G2", "G3", "G01", "G02", "G03"]:
                 if zVal is not None and zVal2 != zVal:
-                    if Path.Geom.isRoughly(xVal, xVal2) and Path.Geom.isRoughly(yVal, yVal2):
+                    if xVal == None and yVal == None:
                         # this is a straight plunge
                         params["F"] = vertFeed
                     else:
